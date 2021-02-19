@@ -1,19 +1,67 @@
-import * as React from 'react';
+import React, { useEffect, useState } from 'react';
 
-import { StyleSheet, View, Text } from 'react-native';
+import { StyleSheet, View, Button } from 'react-native';
 import ReanimatedProgress from 'react-native-reanimated-progress';
-
+import Animated, {
+  withSpring,
+  useSharedValue,
+  useAnimatedStyle,
+} from 'react-native-reanimated';
 
 export default function App() {
-  const [result, setResult] = React.useState<number | undefined>();
+  const [progress, setProgress] = useState<number | undefined>(0);
 
-  React.useEffect(() => {
-    ReanimatedProgress.multiply(3, 7).then(setResult);
+  useEffect(() => {
+    let times = 1;
+    const interval = setInterval(() => {
+      setProgress(100 * times);
+      ++times;
+      if (times > 11) {
+        clearInterval(interval);
+      }
+    }, 1000);
+
+    return () => clearInterval(interval);
   }, []);
+
+  const offset = useSharedValue(0);
+
+  const animatedStyles = useAnimatedStyle(() => {
+    return {
+      transform: [{ translateX: withSpring(offset.value * 255) }],
+    };
+  });
 
   return (
     <View style={styles.container}>
-      <Text>Result: {result}</Text>
+      <Animated.View style={[styles.box, animatedStyles]} />
+      <Button onPress={() => (offset.value = Math.random())} title="Move" />
+      <ReanimatedProgress
+        text={100}
+        animated
+        preset={'circle'}
+        showText
+        indeterminate={false}
+        progress={progress}
+      />
+      <ReanimatedProgress
+        preset={'circle'}
+        showText
+        indeterminate
+        progress={progress}
+      />
+      <ReanimatedProgress
+        preset={'bar'}
+        indeterminate={false}
+        progress={1}
+        duration={10000}
+      />
+      <ReanimatedProgress
+        preset={'pie'}
+        indeterminate={false}
+        progress={1}
+        duration={10000}
+      />
     </View>
   );
 }
@@ -25,8 +73,8 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   box: {
-    width: 60,
-    height: 60,
-    marginVertical: 20,
+    backgroundColor: 'blue',
+    width: 100,
+    height: 100,
   },
 });
